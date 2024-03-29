@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Http\Resources\StatisticResource;
 use App\Models\Player;
 use App\Models\Statistic;
+use App\Models\StatisticGenerator;
+use Carbon\Carbon;
 use Exception;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -16,16 +18,21 @@ use Symfony\Component\HttpFoundation\Response;
 class StatisticsController extends Controller
 {
 
-    public function index(): AnonymousResourceCollection
+    public function index(): array
     {
         $statistics = $this->getTenBestScores();
-        return StatisticResource::collection($statistics);
+        $lastGenerated = StatisticGenerator::latest('last_generated')->pluck('last_generated')->first();
+        return [
+            'data' => StatisticResource::collection($statistics),
+            'last_generated' => Carbon::parse($lastGenerated)->format('d-m-Y H:i:s')
+        ];
     }
 
     public function export(): JsonResponse
     {
         $statistics = $this->getTenBestScores();
 
+        $lastGenerated = StatisticGenerator::latest('last_generated')->pluck('last_generated')->first();
         $content = "statID,playerID,nickname,profileImage,creationDate,score\n";
         foreach ($statistics as $statistic) {
             $content .= "{$statistic->id},";
@@ -36,6 +43,8 @@ class StatisticsController extends Controller
             $content .= "{$statistic->player->updated_at},";
             $content .= "\n";
         }
+        $content .= "Last time stats generated: " . Carbon::parse($lastGenerated)->format('d-m-Y H:i:s');
+
         return $this->sendResponse(true, 'Data exported successfully', base64_encode($content), Response::HTTP_OK);
     }
     /**
@@ -65,6 +74,8 @@ class StatisticsController extends Controller
                     $statistic->score = random_int(1,100);
                     $statistic->save();
                 }
+
+                StatisticGenerator::create(['last_generated' => now()]);
                 DB::commit();
                 return $this->sendResponse(true,count($players) . ' statistics were inserted on database', [], Response::HTTP_OK);
             } catch (Exception $ex) {

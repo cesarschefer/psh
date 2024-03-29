@@ -5,6 +5,8 @@ namespace Tests\Feature;
 use App\Http\Resources\StatisticResource;
 use App\Models\Statistic;
 use App\Models\Player;
+use App\Models\StatisticGenerator;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
@@ -18,6 +20,7 @@ class StatisticTest extends TestCase
         parent::setUp();
         Player::factory()->count(10)->create();
         Statistic::factory()->count(20)->create();
+        StatisticGenerator::factory()->count(10)->create();
     }
 
 
@@ -39,6 +42,20 @@ class StatisticTest extends TestCase
         $response->assertStatus(200);
         $this->assertCount(10, $responseData);
         $this->assertEquals($expectedIds, $actualIds);
+    }
+
+    public function test_last_generated_stats_are_returned(): void
+    {
+        //Arrange
+        $lastGenerated = StatisticGenerator::latest('last_generated')->pluck('last_generated')->first();
+        $formattedLastGenerated = Carbon::parse($lastGenerated)->format('d-m-Y H:i:s');
+
+        //Act
+        $response = $this->get('/api/statistics');
+        $responseData = $response->json()['last_generated'];
+
+        //Assert
+        $this->assertEquals($responseData, $formattedLastGenerated );
     }
 
 }
