@@ -19,7 +19,7 @@ class StatisticResource extends JsonResource
             'uuid' => $this->player_uuid,
             'nickname' => $this->player->nickname,
             'profileImage' => $this->player->profile_image,
-            'creationDate' => $this->created_at,
+            'creationDate' => $this->created_at->format('Y-m-d H:i:s'),
             'score' => $this->score
         ];
     }
