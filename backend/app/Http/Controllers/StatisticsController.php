@@ -28,7 +28,13 @@ class StatisticsController extends Controller
 
         $content = "statID,playerID,nickname,profileImage,creationDate,score\n";
         foreach ($statistics as $statistic) {
-            $content .= "{$statistic->id},{$statistic->player_uuid}, {$statistic->player->nickname},{$statistic->player->profile_image},{$statistic->player->created_at},{$statistic->score}\n";
+            $content .= "{$statistic->id},";
+            $content .= "{$statistic->player_uuid},";
+            $content .= "{$statistic->player->nickname},";
+            $content .= "{$statistic->player->profile_image},";
+            $content .= "{$statistic->player->created_at},";
+            $content .= "{$statistic->player->updated_at},";
+            $content .= "\n";
         }
         return $this->sendResponse(true, 'Data exported successfully', base64_encode($content), Response::HTTP_OK);
     }
