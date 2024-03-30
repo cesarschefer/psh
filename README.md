@@ -6,10 +6,7 @@
     ```bash
     git clone https://github.com/cesarschefer/psh.git
     ```
-2. Switch to the development branch:
-    ```bash
-    git checkout devel
-     ```
+
    
 ## Backend Setup (Laravel 11)
 
