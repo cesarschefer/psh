@@ -2,14 +2,14 @@ import * as React from 'react';
 import { DataGrid } from '@mui/x-data-grid';
 import Container from '@mui/material/Container';
 import Typography from "@mui/material/Typography";
-import {Button, Snackbar, SnackbarContent, useTheme} from "@mui/material";
-import {useEffect, useState} from "react";
+import { Button, CircularProgress, Snackbar, SnackbarContent, useTheme } from "@mui/material";
+import { useEffect, useState } from "react";
 import axios from "axios";
 
 
 const columns = [
-    { field: 'id', headerName: 'Stat ID',align: 'center', headerAlign: 'center',  minWidth: 75 },
-    { field: 'uuid', headerName: 'Player ID', align: 'center' ,headerAlign: 'center', minWidth: 300  },
+    { field: 'id', headerName: 'Stat ID', align: 'center', headerAlign: 'center', minWidth: 75 },
+    { field: 'uuid', headerName: 'Player ID', align: 'center', headerAlign: 'center', minWidth: 300 },
     { field: 'nickname', headerName: 'Nickname', align: 'center', headerAlign: 'center', minWidth: 150 },
     {
         field: 'profileImage',
@@ -35,11 +35,13 @@ export default function Datatable() {
     const theme = useTheme();
     const [stats, setStats] = useState([])
     const [lastGenerated, setLastGenerated] = useState('')
-    const [snackbar, setSnackbar] = useState({open: false, message: ''})
+    const [snackbar, setSnackbar] = useState({ open: false, message: '' })
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const interval = setInterval(() => {
             getStats();
+            setLoading(false);
         }, 10000);
         return () => clearInterval(interval);
 
@@ -57,11 +59,11 @@ export default function Datatable() {
             .catch(error => {
                 handleError(error);
             });
-        }
+    }
 
-    const handleExport =  () => {
+    const handleExport = () => {
         const url = 'http://127.0.0.1:8000/api/statistics/export'
-         axios.get(url)
+        axios.get(url)
             .then(function (response) {
                 const data = response.data.data;
                 const binaryData = atob(data);
@@ -89,19 +91,21 @@ export default function Datatable() {
     }
 
     return (
-        <Container maxWidth="xl" sx={{ padding: '20px', textAlign:"center" }} >
+        <Container maxWidth="xl" sx={{ padding: '20px', textAlign: "center" }} >
 
-                    <Typography variant="h3"
-                                sx= {{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginBottom: '30px',
-                                }}>
-                        Top 10 best scores
-                    </Typography>
+            <Typography variant="h3"
+                        sx={{
+                            display: 'flex',
+                            justifyContent: 'center',
+                            marginBottom: '30px',
+                        }}>
+                Top 10 best scores
+            </Typography>
 
-                    <div style={{width: "1000px", margin:"auto", paddingBottom:"30px"}}>
-                        <h2 style={{  color: theme.palette.primary.main}}>
+            {loading ? (<CircularProgress />) : (
+                <>
+                    <div style={{ width: "1000px", margin: "auto", paddingBottom: "30px" }}>
+                        <h2 style={{ color: theme.palette.primary.main }}>
                             Last time stats generated: {lastGenerated}
                         </h2>
                         <DataGrid
@@ -125,20 +129,21 @@ export default function Datatable() {
                     >
                         Export to CSV
                     </Button>
-
-                    <Snackbar
-                        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-                        open={snackbar.open}
-                        message={snackbar.message}
-                        autoHideDuration={3000}
-                        onClose={handleClose}
-                        onClick={handleClose}
-                    >
-                        <SnackbarContent style={{backgroundColor:'red',color:"white"}}
-                                         message={<span>{snackbar.message}</span>}
-                                         onClick={handleClose}
-                        />
-                    </Snackbar>
+                </>
+            )}
+            <Snackbar
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+                open={snackbar.open}
+                message={snackbar.message}
+                autoHideDuration={3000}
+                onClose={handleClose}
+                onClick={handleClose}
+            >
+                <SnackbarContent style={{ backgroundColor: 'red', color: "white" }}
+                                 message={<span>{snackbar.message}</span>}
+                                 onClick={handleClose}
+                />
+            </Snackbar>
         </Container>
     );
 }
